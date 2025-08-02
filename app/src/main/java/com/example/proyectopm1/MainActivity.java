@@ -2,54 +2,52 @@ package com.example.proyectopm1;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProvider;
-
-import com.example.proyectopm1.R;
-import com.example.proyectopm1.viewmodels.AuthViewModel;
+import androidx.fragment.app.Fragment;
+import com.example.proyectopm1.fragments.OrdersFragment;
+import com.example.proyectopm1.fragments.ProfileFragment;
+import com.example.proyectopm1.fragments.RestaurantFragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextView tvWelcome;
-    private Button btnLogout;
-    private AuthViewModel authViewModel;
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tvWelcome = findViewById(R.id.tvWelcome);
-        btnLogout = findViewById(R.id.btnLogout);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
 
-        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
-
-        // Si no hay sesión, regresar al login
-        if (!authViewModel.isLoggedIn(this)) {
-            goToLogin();
-            return;
+        // Cargar fragmento inicial
+        if (savedInstanceState == null) {
+            loadFragment(new RestaurantFragment());
         }
 
-        // Puedes personalizar el mensaje si tienes el nombre del usuario guardado
-        // Por ejemplo, usando SharedPreferences o el ViewModel
-
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                authViewModel.logout(MainActivity.this);
-                goToLogin();
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
+            int id = item.getItemId();
+            if (id == R.id.nav_restaurants) {
+                selectedFragment = new RestaurantFragment();
+            } else if (id == R.id.nav_orders) {
+                selectedFragment = new OrdersFragment();
+            } else if (id == R.id.nav_profile) {
+                selectedFragment = new ProfileFragment();
             }
+            if (selectedFragment != null) {
+                loadFragment(selectedFragment);
+                return true;
+            }
+            return false;
         });
     }
 
-    private void goToLogin() {
-        Intent intent = new Intent(MainActivity.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finish();
+    private void loadFragment(Fragment fragment) {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .commit();
     }
 }
